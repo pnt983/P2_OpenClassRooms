@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse, urljoin
+from posixpath import basename
 
 url = "http://books.toscrape.com/index.html"
 #page = requests.get(url)  
@@ -49,3 +51,21 @@ def get_book_data(url):
             'url_image' : list_url,
             'url_page' : url}
     return dictionnary_book_description
+
+
+def get_categories_url(url):
+    """Recupere l'url de toutes les categories sur la page d'accueil"""
+    page = requests.get(url)  
+    soup = BeautifulSoup(page.content, "html.parser")
+   
+    get_ul = soup.find('ul', class_='nav nav-list')
+    category_list = []
+    all_li = get_ul.find_all('a')
+    for get_href in all_li :
+        get_href = get_href ['href']
+        parse_url = urlparse(url)
+        url_base = basename(parse_url.netloc)
+        final_url = url_base.replace(url_base,get_href)
+        category_list.append("https://"+url_base + '/' +final_url)
+    category_list.remove(category_list[0])
+    return category_list
