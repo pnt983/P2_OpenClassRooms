@@ -34,6 +34,7 @@ def get_book_data(url):
     url_base = basename(parse_object.netloc)
     list_url.append(url_base + '/' + url_image)
     dictionnary_book_description= {}
+    save_image(title,url)
     for td in tds:
         universal_product_code = tds[0].text
         price_including_tax = tds[3].text
@@ -127,3 +128,20 @@ def save_image (title,url) :
         response = requests.get(url)
         image_jpg.write(response.content)
         image_jpg.close()   
+
+
+def main():
+    page_response = requests.get(url)
+    soup = BeautifulSoup(page_response.content, "html.parser")
+
+    categories_url = get_categories_url(url)
+
+    books_urls = []  
+    for categorie_url in categories_url:
+        book_by_page = get_book_by_page(categorie_url)
+        books_urls.extend(book_by_page)
+
+
+if __name__ == "__main__":
+    main()
+        
