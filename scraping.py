@@ -119,3 +119,11 @@ def save_data_book_csv(dict_name, categorie_name):
         if file_csv.tell()==0 :
             writer.writeheader()
         writer.writerow(dict_name)
+
+def save_image (title,url) :
+    """ Enregistre l'image du livre"""
+    title.replace(" ","_")
+    with open(title+".jpg",'wb') as image_jpg :
+        response = requests.get(url)
+        image_jpg.write(response.content)
+        image_jpg.close()   
