@@ -69,3 +69,18 @@ def get_categories_url(url):
         category_list.append("https://"+url_base + '/' +final_url)
     category_list.remove(category_list[0])
     return category_list
+
+def get_book_by_page(url):
+    """ Recupere toutes les urls des livres sur une page """
+    page = requests.get(url)  
+    soup = BeautifulSoup(page.content, "html.parser")
+
+    url_book_list = []
+    get_div = soup.find_all('article', class_="product_pod")
+    for get_href in get_div:
+        href = get_href.div.a.get('href')
+        replace_href_url= href.replace("../","")
+        parse_url = urlparse(url)
+        url_base = basename(parse_url.netloc)
+        url_book_list.append("https://" + url_base +"/"+"catalogue"+"/"+ replace_href_url) 
+    return url_book_list
