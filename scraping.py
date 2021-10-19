@@ -3,10 +3,10 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from posixpath import basename
 import re
+import csv
 
 url = "http://books.toscrape.com/index.html"
-#page = requests.get(url)  
-#soup = BeautifulSoup(page.content, "html.parser")
+
 
 def get_book_data(url):
     """ Enregistre toutes les donnees d'un livre dans un csv"""
@@ -110,3 +110,12 @@ def get_category_name_for_csv(url):
     find_li = category.find_all('li')
     name_file= find_li[2].text.strip()
     return name_file
+
+def save_data_book_csv(dict_name, categorie_name):
+    """ Enregistre les donnees des livres par page"""
+    fieldname = dict.keys(dict_name)
+    with open(categorie_name +'.csv','a') as file_csv:          
+        writer = csv.DictWriter (file_csv,fieldnames=fieldname, delimiter = ",")
+        if file_csv.tell()==0 :
+            writer.writeheader()
+        writer.writerow(dict_name)
