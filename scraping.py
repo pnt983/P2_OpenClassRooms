@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from posixpath import basename
+import re
 
 url = "http://books.toscrape.com/index.html"
 #page = requests.get(url)  
@@ -99,3 +100,13 @@ def button_next_page(url):
         url_base = basename(parse_object.path)
         final_url = url.replace(url_base, find_href)
         return (final_url)
+
+def get_category_name_for_csv(url): 
+    """Recupere le nom de la categorie pour pouvoir creer le csv"""
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, "html.parser")
+
+    category = soup.find('ul', class_='breadcrumb')
+    find_li = category.find_all('li')
+    name_file= find_li[2].text.strip()
+    return name_file
