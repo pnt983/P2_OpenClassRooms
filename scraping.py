@@ -141,6 +141,11 @@ def main():
         book_by_page = get_book_by_page(categorie_url)
         books_urls.extend(book_by_page)
 
+    for book_url in books_urls:
+        categorie_name = get_category_name_for_csv(book_url)
+        data_book = get_book_data(book_url)
+        create_csv = save_data_book_csv(data_book, categorie_name)
+
 
 if __name__ == "__main__":
     main()
