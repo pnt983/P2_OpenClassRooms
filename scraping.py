@@ -84,3 +84,18 @@ def get_book_by_page(url):
         url_base = basename(parse_url.netloc)
         url_book_list.append("https://" + url_base +"/"+"catalogue"+"/"+ replace_href_url) 
     return url_book_list
+
+def button_next_page(url):
+    """Regarde si il a une autre page. Si il y en a une autre, recuperation de l'adresse de l'autre page"""
+    page = requests.get(url)  
+    soup = BeautifulSoup(page.content, "html.parser")
+    
+    next_page= soup.find('li', class_='next')
+    while soup.find('li', class_='next') is not None:
+        next_page_url=next_page.find('a')
+        find_href= next_page_url.get('href')
+        parse_url = urlparse(url)
+        parse_object = parse_url
+        url_base = basename(parse_object.path)
+        final_url = url.replace(url_base, find_href)
+        return (final_url)
