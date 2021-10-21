@@ -1,13 +1,47 @@
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 from posixpath import basename
 import re
+from pathlib import Path
 import csv
+
 
 url = "http://books.toscrape.com/index.html"
 
 
+def get_category_name_for_csv(url): 
+    """Recupere le nom de la categorie pour pouvoir creer le csv"""
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, "html.parser")
+
+    category = soup.find('ul', class_='breadcrumb')
+    find_li = category.find_all('li')
+    name_file= find_li[2].text.strip()
+    return name_file
+
+
+def save_data_book_csv(dict_name, categorie_name):
+    """ Enregistre les donnees des livres par page"""
+    fieldname = dict.keys(dict_name)
+    file_path = Path ("P2_Despierre_Clement/data_csv/"+categorie_name+".csv")
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with file_path.open('a',encoding="utf-8-sig") as file_csv:   
+        writer = csv.DictWriter (file_csv,fieldnames=fieldname, delimiter = ",")
+        if file_csv.tell()==0 :
+            writer.writeheader()
+        writer.writerow(dict_name)
+
+def save_image (title,url) :
+    """ Enregistre l'image du livre"""
+    clean_title = re.sub(r"[^a-zA-Z0-9]","_",title)
+    file_path = Path ("P2_Despierre_Clement/books_images/"+clean_title+".jpg")
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with file_path.open('wb') as image_jpg :   
+        response = requests.get(url)
+        image_jpg.write(response.content)
+        image_jpg.close()   
+         
 def get_book_data(url):
     """ Enregistre toutes les donnees d'un livre dans un csv"""
     page = requests.get(url)  
@@ -19,12 +53,9 @@ def get_book_data(url):
     category = soup.find_all('li')
     categories = category[2].text.strip()
     title = (soup.find('h1')).text
-    dict = {'One':1,'Two':2,'Three':3,'Four':4,'Five': 5}
-    rating_list = []
+    dict_rating = {'One':1,'Two':2,'Three':3,'Four':4,'Five': 5}
     get_rating = soup.find("p", class_ = re.compile("star-rating")).get("class")[1]
-    get_rating = dict[get_rating]
-    rating_list.append(get_rating)
-    list_url = []
+    get_rating = dict_rating[get_rating]
     image = soup.find('div',class_='item active')
     source_image = image.find('img')
     url_image = source_image.get('src')
@@ -32,9 +63,9 @@ def get_book_data(url):
     parse_url = urlparse(url)
     parse_object = parse_url
     url_base = basename(parse_object.netloc)
-    list_url.append(url_base + '/' + url_image)
+    list_url = (url_base + '/' + url_image)    
     dictionnary_book_description= {}
-    save_image(title,url)
+    save_image(title,url)                            
     for td in tds:
         universal_product_code = tds[0].text
         price_including_tax = tds[3].text
@@ -49,9 +80,9 @@ def get_book_data(url):
             'Description': product_description,
             'Categorie':categories,
             'Title':title,
-            'review-rating' : rating_list,
+            'review-rating' : get_rating,
             'url_image' : list_url,
-            'url_page' : url}
+            'url_page' : url}        
     return dictionnary_book_description
 
 
@@ -72,6 +103,7 @@ def get_categories_url(url):
     category_list.remove(category_list[0])
     return category_list
 
+
 def get_book_by_page(url):
     """ Recupere toutes les urls des livres sur une page """
     page = requests.get(url)  
@@ -87,66 +119,48 @@ def get_book_by_page(url):
         url_book_list.append("https://" + url_base +"/"+"catalogue"+"/"+ replace_href_url) 
     return url_book_list
 
-def button_next_page(url):
-    """Regarde si il a une autre page. Si il y en a une autre, recuperation de l'adresse de l'autre page"""
-    page = requests.get(url)  
-    soup = BeautifulSoup(page.content, "html.parser")
-    
-    next_page= soup.find('li', class_='next')
-    while soup.find('li', class_='next') is not None:
-        next_page_url=next_page.find('a')
-        find_href= next_page_url.get('href')
-        parse_url = urlparse(url)
-        parse_object = parse_url
-        url_base = basename(parse_object.path)
-        final_url = url.replace(url_base, find_href)
-        return (final_url)
-
-def get_category_name_for_csv(url): 
-    """Recupere le nom de la categorie pour pouvoir creer le csv"""
+def get_loop(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, "html.parser")
 
-    category = soup.find('ul', class_='breadcrumb')
-    find_li = category.find_all('li')
-    name_file= find_li[2].text.strip()
-    return name_file
-
-def save_data_book_csv(dict_name, categorie_name):
-    """ Enregistre les donnees des livres par page"""
-    fieldname = dict.keys(dict_name)
-    with open(categorie_name +'.csv','a') as file_csv:          
-        writer = csv.DictWriter (file_csv,fieldnames=fieldname, delimiter = ",")
-        if file_csv.tell()==0 :
-            writer.writeheader()
-        writer.writerow(dict_name)
-
-def save_image (title,url) :
-    """ Enregistre l'image du livre"""
-    title.replace(" ","_")
-    with open(title+".jpg",'wb') as image_jpg :
-        response = requests.get(url)
-        image_jpg.write(response.content)
-        image_jpg.close()   
-
+    get_book_numbers = soup.find("form", class_="form-horizontal")
+    numbers = get_book_numbers.find_all("strong")
+    number= numbers[0].text.strip()
+    division = int(number) // 20
+    modulo = int(number) % 20
+    if modulo != 0:
+        division += 1
+        return division
+    else:
+        return division
 
 def main():
     page_response = requests.get(url)
     soup = BeautifulSoup(page_response.content, "html.parser")
 
     categories_url = get_categories_url(url)
-
+    print(categories_url)
     books_urls = []  
     for categorie_url in categories_url:
-        book_by_page = get_book_by_page(categorie_url)
-        books_urls.extend(book_by_page)
-
+        loops = get_loop(categorie_url)
+        for loop in range (loops):
+            if loop > 0:
+                page_number = loop + 1 # range commence à zero
+                current_url = categorie_url.replace("index.html", f"page-{page_number}.html")
+                book_on_next_page = get_book_by_page(current_url)
+                books_urls.extend(book_on_next_page) 
+            else:
+                book_by_page = get_book_by_page(categorie_url)
+                books_urls.extend(book_by_page)
+                loop += 1
+    
+    
     for book_url in books_urls:
+        book_data = get_book_data(book_url)
         categorie_name = get_category_name_for_csv(book_url)
-        data_book = get_book_data(book_url)
-        create_csv = save_data_book_csv(data_book, categorie_name)
-
-
+        save_data_book_csv(book_data, categorie_name)
+            
+    
 if __name__ == "__main__":
     main()
         

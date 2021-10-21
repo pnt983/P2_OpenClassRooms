@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+brouillon.py
+main.py
+requirements.txt
+test fonction csv.py
+test fonction.py
+.gitignore
+brouillon2.py
+main_by_o.py
+test_main.py
