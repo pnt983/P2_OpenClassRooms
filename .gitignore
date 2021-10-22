@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 brouillon.py
 main.py
-requirements.txt
 test fonction csv.py
 test fonction.py
 .gitignore
