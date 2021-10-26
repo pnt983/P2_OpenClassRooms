@@ -135,11 +135,15 @@ def get_loop(url):
         return division
 
 def main():
-    page_response = requests.get(url)
+    URL = "http://books.toscrape.com/index.html"
+    page_response = requests.get(URL)
+    if not page_response.ok:
+        print("Oups! Un probleme est apparue lors de la requete au serveur")
+        return
     soup = BeautifulSoup(page_response.content, "html.parser")
+      
 
-    categories_url = get_categories_url(url)
-    print(categories_url)
+    categories_url = get_categories_url(URL)
     books_urls = []  
     for categorie_url in categories_url:
         loops = get_loop(categorie_url)
