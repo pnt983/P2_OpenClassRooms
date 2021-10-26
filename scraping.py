@@ -6,14 +6,18 @@ import re
 from pathlib import Path
 import csv
 
-
-url = "http://books.toscrape.com/index.html"
+def response_url (url): 
+    page_response = requests.get(url)
+    if not page_response.ok:
+        print("Oups! Un probleme est apparue lors de la requete au serveur")
+        return
+    soup = BeautifulSoup(page_response.content, "html.parser")
+    return soup
 
 
 def get_category_name_for_csv(url): 
     """Recupere le nom de la categorie pour pouvoir creer le csv"""
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = response_url(url)
 
     category = soup.find('ul', class_='breadcrumb')
     find_li = category.find_all('li')
@@ -44,8 +48,7 @@ def save_image (title,url) :
          
 def get_book_data(url):
     """ Enregistre toutes les donnees d'un livre dans un csv"""
-    page = requests.get(url)  
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = response_url(url)
 
     tds = soup.find_all('td')
     description = soup.find_all('p')         
@@ -88,8 +91,7 @@ def get_book_data(url):
 
 def get_categories_url(url):
     """Recupere l'url de toutes les categories sur la page d'accueil"""
-    page = requests.get(url)  
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = response_url(url)
    
     get_ul = soup.find('ul', class_='nav nav-list')
     category_list = []
@@ -106,8 +108,7 @@ def get_categories_url(url):
 
 def get_book_by_page(url):
     """ Recupere toutes les urls des livres sur une page """
-    page = requests.get(url)  
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = response_url(url)
 
     url_book_list = []
     get_div = soup.find_all('article', class_="product_pod")
@@ -120,8 +121,7 @@ def get_book_by_page(url):
     return url_book_list
 
 def get_loop(url):
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = response_url(url)
 
     get_book_numbers = soup.find("form", class_="form-horizontal")
     numbers = get_book_numbers.find_all("strong")
@@ -136,11 +136,7 @@ def get_loop(url):
 
 def main():
     URL = "http://books.toscrape.com/index.html"
-    page_response = requests.get(URL)
-    if not page_response.ok:
-        print("Oups! Un probleme est apparue lors de la requete au serveur")
-        return
-    soup = BeautifulSoup(page_response.content, "html.parser")
+    soup = response_url(URL)
       
 
     categories_url = get_categories_url(URL)
@@ -157,7 +153,6 @@ def main():
                 book_by_page = get_book_by_page(categorie_url)
                 books_urls.extend(book_by_page)
                 loop += 1
-    
     
     for book_url in books_urls:
         book_data = get_book_data(book_url)
