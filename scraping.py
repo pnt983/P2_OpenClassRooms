@@ -28,7 +28,7 @@ def get_category_name_for_csv(url):
 def save_data_book_csv(dict_name, categorie_name):
     """ Enregistre les donnees des livres par page"""
     fieldname = dict.keys(dict_name)
-    file_path = Path ("P2_Despierre_Clement/data_csv/"+categorie_name+".csv")
+    file_path = Path ("P2_Despierre_Clement/"+categorie_name+"/"+categorie_name+".csv")
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with file_path.open('a',encoding="utf-8-sig") as file_csv:   
         writer = csv.DictWriter (file_csv,fieldnames=fieldname, delimiter = ",")
@@ -36,10 +36,10 @@ def save_data_book_csv(dict_name, categorie_name):
             writer.writeheader()
         writer.writerow(dict_name)
 
-def save_image (title,url) :
+def save_image (title,url,categories) :
     """ Enregistre l'image du livre"""
     clean_title = re.sub(r"[^a-zA-Z0-9]","_",title)
-    file_path = Path ("P2_Despierre_Clement/books_images/"+clean_title+".jpg")
+    file_path = Path ("P2_Despierre_Clement/"+categories+"/"+clean_title+".jpg")
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with file_path.open('wb') as image_jpg :   
         response = requests.get(url)
@@ -68,7 +68,7 @@ def get_book_data(url):
     url_base = basename(parse_object.netloc)
     list_url = (url_base + '/' + url_image)    
     dictionnary_book_description= {}
-    save_image(title,url)                            
+    save_image(title,url,categories)                            
     for td in tds:
         universal_product_code = tds[0].text
         price_including_tax = tds[3].text
@@ -122,7 +122,7 @@ def get_book_by_page(url):
 
 def get_loop(url):
     soup = response_url(url)
-
+    
     get_book_numbers = soup.find("form", class_="form-horizontal")
     numbers = get_book_numbers.find_all("strong")
     number= numbers[0].text.strip()
@@ -138,7 +138,6 @@ def main():
     URL = "http://books.toscrape.com/index.html"
     soup = response_url(URL)
       
-
     categories_url = get_categories_url(URL)
     books_urls = []  
     for categorie_url in categories_url:
