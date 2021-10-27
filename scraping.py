@@ -36,13 +36,13 @@ def save_data_book_csv(dict_name, categorie_name):
             writer.writeheader()
         writer.writerow(dict_name)
 
-def save_image (title,url,categories) :
+def save_image (title,list_url,categories) :
     """ Enregistre l'image du livre"""
     clean_title = re.sub(r"[^a-zA-Z0-9]","_",title)
     file_path = Path ("P2_Despierre_Clement/"+categories+"/"+clean_title+".jpg")
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with file_path.open('wb') as image_jpg :   
-        response = requests.get(url)
+        response = requests.get(list_url)
         image_jpg.write(response.content)
         image_jpg.close()   
          
@@ -66,9 +66,11 @@ def get_book_data(url):
     parse_url = urlparse(url)
     parse_object = parse_url
     url_base = basename(parse_object.netloc)
-    list_url = (url_base + '/' + url_image)    
+    list_url = ("https://"+url_base + '/' + url_image) 
+    clean_title = re.sub(r"[^a-zA-Z0-9]","_",title)
+    file_path = Path ("P2_Despierre_Clement/"+categories+"/"+clean_title+".jpg")   
     dictionnary_book_description= {}
-    save_image(title,url,categories)                            
+    save_image(title,list_url,categories)                            
     for td in tds:
         universal_product_code = tds[0].text
         price_including_tax = tds[3].text
@@ -76,16 +78,18 @@ def get_book_data(url):
         number_available = tds[5].text
         number_available = re.sub(r'[^0-9]', '', number_available)  
         dictionnary_book_description= {
+            'Title':title,
             'UPC': universal_product_code,
             'price_including_tax' : price_including_tax,
             'price_excluding_tax' : price_excluding_tax,
             'number_available' :number_available,
             'Description': product_description,
             'Categorie':categories,
-            'Title':title,
             'review-rating' : get_rating,
             'url_image' : list_url,
+            'local_image' : file_path,
             'url_page' : url}        
+    print(f"Les donnees du livre {title} sont recuperees")
     return dictionnary_book_description
 
 
@@ -103,6 +107,7 @@ def get_categories_url(url):
         final_url = url_base.replace(url_base,get_href)
         category_list.append("https://"+url_base + '/' +final_url)
     category_list.remove(category_list[0])
+    print("Recuperation de l'url de chaque categorie fini")
     return category_list
 
 
@@ -118,6 +123,7 @@ def get_book_by_page(url):
         parse_url = urlparse(url)
         url_base = basename(parse_url.netloc)
         url_book_list.append("https://" + url_base +"/"+"catalogue"+"/"+ replace_href_url) 
+    print(f"La recuperation de l'url du livre {replace_href_url} est fini")
     return url_book_list
 
 def get_loop(url):
