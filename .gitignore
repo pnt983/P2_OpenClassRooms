@@ -136,3 +136,5 @@ brouillon2.py
 main_by_o.py
 test_main.py
 P2_Despierre_Clement
+.gitignore
+Data
